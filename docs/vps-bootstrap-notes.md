@@ -108,7 +108,12 @@ Custom model prompt/config update workflow:
   - `Modelfile`
   - `models/codex-nemotron/Modelfile`
 - Rebuild command installed on the VPS:
-  - `rebuild-ollama-models [all|minimadmax|codex-nemotron|render]`
+  - `rebuild-ollama-models [all|minimadmax|codex-nemotron|render|profiles] [--profile NAME]`
+- Useful MiniMaxine-derived pieces adapted into `MiniMadMax`:
+  - shared tuning profiles in `models/profiles/`
+  - external outcome memory in `data/outcomes.jsonl` and `data/learned.json`
+  - `model-outcome` for recording task outcomes
+  - `model-json-extract` for cleaning JSON out of noisy Ollama model output
 
 Plain Ollama model sessions cannot persist their own changes. A tool-enabled Codex session can edit the source-controlled prompt files, run `rebuild-ollama-models`, smoke-test the model, and commit/push the result.
 
