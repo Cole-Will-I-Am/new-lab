@@ -99,6 +99,19 @@ Registered models observed after the later Ollama cloud wrapper update:
 
 Operational note: Nemotron may emit visible `Thinking...` output in the plain `ollama run` CLI. For clean automation, call Ollama's API with `think:false`, or use the `codex-nemotron` wrapper.
 
+Custom model prompt/config update workflow:
+
+- Prompt source files live in `Cole-Will-I-Am/MiniMadMax`:
+  - `models/minimadmax/system.md`
+  - `models/codex-nemotron/system.md`
+- Generated Ollama Modelfiles:
+  - `Modelfile`
+  - `models/codex-nemotron/Modelfile`
+- Rebuild command installed on the VPS:
+  - `rebuild-ollama-models [all|minimadmax|codex-nemotron|render]`
+
+Plain Ollama model sessions cannot persist their own changes. A tool-enabled Codex session can edit the source-controlled prompt files, run `rebuild-ollama-models`, smoke-test the model, and commit/push the result.
+
 ## Codex Workspace
 
 The AI lab workspace was created at:
