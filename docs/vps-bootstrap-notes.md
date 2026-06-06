@@ -81,9 +81,21 @@ Ollama is installed as a system service:
 - User: `ollama`
 - Listener: `127.0.0.1:11434`
 
-Registered model observed:
+Registered model initially observed:
 
 - `minimax-m3:cloud`
+
+Registered models observed after the later Ollama cloud wrapper update:
+
+- `minimax-m3:cloud`
+- `minimadmax:latest`
+- `qwen3.5:397b-cloud`
+- `nemotron-3-ultra:cloud`
+- `codex-nemotron:latest`
+
+`codex-nemotron:latest` is a custom wrapper around `nemotron-3-ultra:cloud` for slower, deeper VPS engineering work. Its spec is tracked in `Cole-Will-I-Am/MiniMadMax` under `models/codex-nemotron/`.
+
+Operational note: Nemotron may emit visible `Thinking...` output in the plain `ollama run` CLI. For clean automation, call Ollama's API with `think:false`, or use the `codex-nemotron` wrapper.
 
 ## Codex Workspace
 
