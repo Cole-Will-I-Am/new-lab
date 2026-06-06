@@ -112,6 +112,15 @@ Custom model prompt/config update workflow:
 
 Plain Ollama model sessions cannot persist their own changes. A tool-enabled Codex session can edit the source-controlled prompt files, run `rebuild-ollama-models`, smoke-test the model, and commit/push the result.
 
+Git execution boundary verified on 2026-06-06:
+
+- Test repo: `https://github.com/Cole-Will-I-Am/testy`
+- Plain `ollama run --experimental --experimental-yolo` did not let `minimadmax:latest` or `codex-nemotron:latest` actually edit/commit/push.
+- MiniMadMax produced a simulated command transcript for the wrong repo during the direct execution test.
+- CodexNemotron produced commands but did not execute them.
+- Both models produced structured commit requests when asked.
+- This tool-enabled Codex session executed those requests and pushed commits `6c01cb2` and `ec50ce9` to `testy`.
+
 ## Codex Workspace
 
 The AI lab workspace was created at:
