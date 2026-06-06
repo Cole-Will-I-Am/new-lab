@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export GITHUB_PAT_TOKEN="$(gh auth token)"
+exec codex "$@"

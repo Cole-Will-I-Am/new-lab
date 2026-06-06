@@ -8,12 +8,14 @@ This repository records the current state and setup decisions for the experiment
 
 - Hostname: `srv1736822`
 - OS: Ubuntu 24.04.4 LTS Noble
-- Kernel observed: `6.8.0-111-generic`
+- Kernel observed initially: `6.8.0-111-generic`
+- Kernel observed after reboot/update: `6.8.0-124-generic`
 - Virtualization: KVM/QEMU
 - CPU: 1 vCPU on AMD EPYC 7543P host
 - RAM: 3.8 GiB
-- Swap: none
-- Root disk: 48 GiB, roughly 5 GiB used at initial review
+- Swap initially: none
+- Swap after hardening/update: 2 GiB `/swapfile`
+- Root disk: 48 GiB, roughly 7.5 GiB used at the 2026-06-06 follow-up review
 - Public IPv4: `153.92.222.46`
 - Public IPv6: `2a02:4780:d:bdd6::1/48`
 - Timezone: UTC
@@ -109,6 +111,12 @@ An operating charter was added at:
 
 ```text
 /root/ai-lab/AGENTS.md
+```
+
+A source-controlled copy lives in this repository:
+
+```text
+/root/ai-lab/new-lab/AGENTS.md
 ```
 
 The charter tells Codex to:
@@ -245,6 +253,12 @@ A launcher script was created:
 /root/ai-lab/bin/codex-github
 ```
 
+A source-controlled copy lives in this repository:
+
+```text
+/root/ai-lab/new-lab/bin/codex-github
+```
+
 It starts Codex with `GITHUB_PAT_TOKEN` populated from `gh auth token`:
 
 ```bash
@@ -269,7 +283,7 @@ Use it for future Codex sessions that should have GitHub MCP access:
 
 ## Security-Relevant Findings
 
-Initial SSH posture was permissive:
+Initial SSH posture was permissive during bootstrap:
 
 - `PermitRootLogin yes`
 - `PasswordAuthentication yes`
@@ -277,25 +291,56 @@ Initial SSH posture was permissive:
 - `/root/.ssh/authorized_keys` was empty
 - UFW was installed but inactive
 
-This may be intentional for a lab, but it is the highest-priority hardening item if the server will remain reachable on the public internet.
+Follow-up review on 2026-06-06 showed the critical SSH/firewall items had been corrected:
 
-Recommended hardening when ready:
+- `PermitRootLogin no`
+- `PasswordAuthentication no`
+- `PubkeyAuthentication yes`
+- `KbdInteractiveAuthentication no`
+- UFW active with default deny incoming and only public SSH allowed
+- `fail2ban.service` active with the `sshd` jail enabled
+- Non-root sudo user `admin` exists
+- `/home/admin/.ssh/authorized_keys` has one `ssh-ed25519` key
+- `/root/.ssh/authorized_keys` has one `ssh-rsa` key, but root SSH login is disabled
 
-- Add SSH public key login.
-- Disable root password SSH login.
-- Create a non-root sudo user.
-- Enable UFW with only required ports.
-- Consider fail2ban or equivalent SSH brute-force protection.
+Remaining security posture decisions:
+
 - Decide whether Codex should remain globally `danger-full-access` or move back to a scoped profile for day-to-day work.
+- Consider whether public SSH should remain open to the world or be restricted by source IP/VPN if a stable admin access path exists.
+- Consider replacing any remaining RSA-only root key material with ed25519 key material, even though root SSH login is currently disabled.
 
 ## Package Update State
 
-APT showed pending updates during review. Installing `gh` also produced a kernel notice:
+APT showed pending updates during initial review. Installing `gh` also produced a kernel notice:
 
 - Running kernel: `6.8.0-111-generic`
 - Expected newer kernel: `6.8.0-124-generic`
 
-A reboot may be needed when convenient to load the newer kernel after applying updates.
+Follow-up review on 2026-06-06 showed:
+
+- Running kernel: `6.8.0-124-generic`
+- `apt-get -s upgrade`: `0 upgraded, 0 newly installed, 0 to remove and 0 not upgraded`
+- `/var/run/reboot-required`: absent
+- `unattended-upgrades.service`: enabled
+
+## Follow-Up Review Notes
+
+Live review on 2026-06-06 found:
+
+- No failed systemd services.
+- Public listeners: SSH on port 22 only.
+- Local listeners: Ollama on `127.0.0.1:11434`, systemd resolver on loopback.
+- `ssh.socket` is enabled and socket-activates `ssh.service`; `ssh.service` itself may show disabled, which is expected for this setup.
+- `ollama.service`, `fail2ban.service`, `ufw`, and `unattended-upgrades.service` are enabled.
+- `Cole-Will-I-Am/MiniMadMax` and `Cole-Will-I-Am/new-lab` were clean and pushed to `origin/main`.
+- `codex-nemotron "prompt"` returned clean output through the Ollama API with `think:false`.
+- Source-controlled copies now exist for `/root/ai-lab/AGENTS.md` and `/root/ai-lab/bin/codex-github`.
+
+Observed low-priority warnings:
+
+- `/etc/pam.d/login` references missing `pam_lastlog.so`, causing a console-login PAM warning.
+- Cloud-init generated netplan config includes `localhost` as a DNS search domain, which systemd-networkd ignores with a warning.
+- Custom Ollama wrapper models may show `unknown capabilities` warnings in Ollama logs; base cloud models still expose capabilities normally.
 
 ## Repository Setup
 
